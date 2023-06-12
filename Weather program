@@ -1,0 +1,80 @@
+import requests
+from datetime import datetime
+import tkinter as tk
+from tkinter import messagebox
+
+def get_weather():
+    city = city_entry.get()  # Отримання значення міста
+    date = date_entry.get()  # Отримання значення дати
+
+    try:
+        date = datetime.strptime(date, "%Y-%m-%d")  # Перетворення введеної дати в об'єкт datetime
+        api_key = '433c29f99cdc607a38e2dee05ba3d568'  # ключ API OpenWeatherMap
+        base_url = 'https://api.openweathermap.org/data/2.5/forecast'
+
+        # Перетворення дати в тимчасову мітку Unix
+        timestamp = int(date.timestamp())
+
+        # Параметри запиту
+        params = {
+            'q': city,
+            'appid': api_key,
+            'cnt': 1,
+            'units': 'metric',
+            'dt': timestamp
+        }
+
+        # Виконання запиту до API OpenWeatherMap
+        response = requests.get(base_url, params=params)
+        data = response.json()
+
+        # Парсинг погодних даних з відповіді API
+        weather_data = data['list'][0]
+        temperature = weather_data['main']['temp']
+        weather_description = weather_data['weather'][0]['description']
+        wind_speed = weather_data['wind']['speed']
+
+        # Виведення результатів
+        messagebox.showinfo("Результат", f"Погода у місті {city} на {date.strftime('%Y-%m-%d')}:\n"
+                                         f"Температура: {temperature}°C\n"
+                                         f"Опис: {weather_description}\n"
+                                         f"Швидкість вітру: {wind_speed} м/с")
+    except Exception as e:
+        messagebox.showerror("Помилка", str(e))
+
+# Створення графічного інтерфейсу
+window = tk.Tk()
+
+# Отримання розмірів екрана
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+
+# Отримання розмірів вікна
+window_width = 500
+window_height = 300
+
+# Обчислення координат для розташування вікна по центру екрана
+x = (screen_width - window_width) // 2
+y = (screen_height - window_height) // 2
+
+# Встановлення розмірів та координат вікна
+window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+window.resizable(False, False)  # Заборонити зміну розмірів вікна
+window.title("Погода від Прядки Владислава")
+
+city_label = tk.Label(window, text="Місто:")
+city_label.pack()
+
+city_entry = tk.Entry(window)
+city_entry.pack()
+
+date_label = tk.Label(window, text="Дата (рік-місяць-день):")
+date_label.pack()
+
+date_entry = tk.Entry(window)
+date_entry.pack()
+
+get_weather_button = tk.Button(window, text="Дізнатись погоду", command=get_weather)
+get_weather_button.pack()
+
+window.mainloop()
